@@ -17,6 +17,10 @@ interface PerPageReadableWidthSettings {
   showHeaderButton: boolean;
 }
 
+interface VaultWithConfig {
+  getConfig?: (key: string) => unknown;
+}
+
 const DEFAULT_SETTINGS: PerPageReadableWidthSettings = {
   fullWidthPages: ["Notes/Budget.md"],
   fullWidthFolders: [],
@@ -36,7 +40,9 @@ class PerPageReadableWidthSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "Per-Page Readable Width" });
+    new Setting(containerEl)
+      .setName("Per-Page Readable Width")
+      .setHeading();
 
     new Setting(containerEl)
       .setName("Show Toggle Button in Note Header")
@@ -64,7 +70,9 @@ class PerPageReadableWidthSettingTab extends PluginSettingTab {
           })
       );
 
-    containerEl.createEl("h3", { text: "Full-Width Pages (Readable Line Length Off)" });
+    new Setting(containerEl)
+      .setName("Full-Width Pages (Readable Line Length Off)")
+      .setHeading();
 
     let newPagePath = "";
     new Setting(containerEl)
@@ -104,7 +112,7 @@ class PerPageReadableWidthSettingTab extends PluginSettingTab {
           .addButton((btn) =>
             btn
               .setButtonText("Remove")
-              .setWarning()
+              .setDestructive()
               .onClick(async () => {
                 this.plugin.settings.fullWidthPages =
                   this.plugin.settings.fullWidthPages.filter((p) => p !== pagePath);
@@ -116,7 +124,9 @@ class PerPageReadableWidthSettingTab extends PluginSettingTab {
       }
     }
 
-    containerEl.createEl("h3", { text: "Full-Width Folders" });
+    new Setting(containerEl)
+      .setName("Full-Width Folders")
+      .setHeading();
 
     let newFolderPath = "";
     new Setting(containerEl)
@@ -155,7 +165,7 @@ class PerPageReadableWidthSettingTab extends PluginSettingTab {
           .addButton((btn) =>
             btn
               .setButtonText("Remove")
-              .setWarning()
+              .setDestructive()
               .onClick(async () => {
                 this.plugin.settings.fullWidthFolders =
                   this.plugin.settings.fullWidthFolders.filter((f) => f !== folderPath);
@@ -173,7 +183,12 @@ export default class PerPageReadableWidthPlugin extends Plugin {
   settings: PerPageReadableWidthSettings;
 
   async loadSettings(): Promise<void> {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    const loadedData = (await this.loadData()) as unknown;
+    this.settings = Object.assign(
+      {},
+      DEFAULT_SETTINGS,
+      loadedData as Partial<PerPageReadableWidthSettings>
+    );
   }
 
   async saveSettings(): Promise<void> {
@@ -237,7 +252,11 @@ export default class PerPageReadableWidthPlugin extends Plugin {
     if (!view || !view.file) return;
 
     const fullWidth = this.isFileFullWidth(view.file);
-    const globalReadable = (this.app.vault as any).getConfig?.("readableLineLength") !== false;
+    const vaultConfig = this.app.vault as unknown as VaultWithConfig;
+    const globalReadable =
+      typeof vaultConfig.getConfig === "function"
+        ? vaultConfig.getConfig("readableLineLength") !== false
+        : true;
 
     const { containerEl, contentEl } = view;
     containerEl.classList.toggle("pprw-full-width-page", fullWidth);
@@ -261,19 +280,18 @@ export default class PerPageReadableWidthPlugin extends Plugin {
     const actionsEl = view.containerEl?.querySelector(".view-actions");
     if (!actionsEl) return;
 
-    let btn = actionsEl.querySelector(".pprw-header-btn") as HTMLAnchorElement | null;
+    let btn = actionsEl.querySelector<HTMLAnchorElement>(".pprw-header-btn");
     if (!this.settings.showHeaderButton) {
       if (btn) btn.remove();
       return;
     }
 
     if (!btn) {
-      btn = document.createElement("a");
-      btn.className = "clickable-icon view-action pprw-header-btn";
+      btn = createEl("a", { cls: "clickable-icon view-action pprw-header-btn" });
       btn.addEventListener("click", (e) => {
         e.preventDefault();
         if (view.file) {
-          this.togglePageFullWidth(view.file);
+          void this.togglePageFullWidth(view.file);
         }
       });
       actionsEl.prepend(btn);
@@ -348,7 +366,7 @@ export default class PerPageReadableWidthPlugin extends Plugin {
         const file = this.app.workspace.getActiveFile();
         if (!file) return false;
         if (!checking) {
-          this.togglePageFullWidth(file);
+          void this.togglePageFullWidth(file);
         }
         return true;
       }
@@ -368,7 +386,7 @@ export default class PerPageReadableWidthPlugin extends Plugin {
             )
             .setIcon(isFull ? "minimize-2" : "maximize-2")
             .onClick(() => {
-              this.togglePageFullWidth(file);
+              void this.togglePageFullWidth(file);
             });
         });
       })
@@ -378,7 +396,12 @@ export default class PerPageReadableWidthPlugin extends Plugin {
   }
 
   onunload(): void {
-    const globalReadable = (this.app.vault as any).getConfig?.("readableLineLength") !== false;
+    const vaultConfig = this.app.vault as unknown as VaultWithConfig;
+    const globalReadable =
+      typeof vaultConfig.getConfig === "function"
+        ? vaultConfig.getConfig("readableLineLength") !== false
+        : true;
+
     this.app.workspace.iterateAllLeaves((leaf) => {
       if (leaf.view instanceof MarkdownView) {
         const { containerEl, contentEl } = leaf.view;
