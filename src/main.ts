@@ -41,7 +41,7 @@ class PerPageReadableWidthSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     new Setting(containerEl)
-      .setName("Per-Page Readable Width")
+      .setName("General")
       .setHeading();
 
     new Setting(containerEl)
@@ -112,7 +112,7 @@ class PerPageReadableWidthSettingTab extends PluginSettingTab {
           .addButton((btn) =>
             btn
               .setButtonText("Remove")
-              .setDestructive()
+              .setClass("mod-warning")
               .onClick(async () => {
                 this.plugin.settings.fullWidthPages =
                   this.plugin.settings.fullWidthPages.filter((p) => p !== pagePath);
@@ -165,7 +165,7 @@ class PerPageReadableWidthSettingTab extends PluginSettingTab {
           .addButton((btn) =>
             btn
               .setButtonText("Remove")
-              .setDestructive()
+              .setClass("mod-warning")
               .onClick(async () => {
                 this.plugin.settings.fullWidthFolders =
                   this.plugin.settings.fullWidthFolders.filter((f) => f !== folderPath);
