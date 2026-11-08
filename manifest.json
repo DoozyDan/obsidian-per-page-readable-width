@@ -1,7 +1,7 @@
 {
   "id": "per-page-readable-width",
   "name": "Per-Page Readable Width",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "minAppVersion": "1.3.5",
   "description": "Disable Readable Line Length (enable Full Width) on specific pages while keeping global Readable Line Length enabled.",
   "author": "Dan",

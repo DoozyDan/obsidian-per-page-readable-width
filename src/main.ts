@@ -41,10 +41,6 @@ class PerPageReadableWidthSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     new Setting(containerEl)
-      .setName("General")
-      .setHeading();
-
-    new Setting(containerEl)
       .setName("Show Toggle Button in Note Header")
       .setDesc("Adds a 1-click Full Width toggle icon in the top-right header of every note.")
       .addToggle((toggle) =>
