@@ -1,0 +1,14 @@
+{
+  "name": "obsidian-per-page-readable-width",
+  "version": "1.0.0",
+  "description": "Disable Readable Line Length (enable Full Width) on specific pages while keeping global Readable Line Length enabled across the rest of your vault.",
+  "main": "main.js",
+  "keywords": [
+    "obsidian",
+    "obsidian-plugin",
+    "readable-line-length",
+    "full-width"
+  ],
+  "author": "Dan",
+  "license": "MIT"
+}
